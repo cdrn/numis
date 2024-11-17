@@ -1,10 +1,16 @@
 import SafeSelector from "@/components/SafeSelector";
+import SafeDetails from "@/components/SafeDetails";
 import React, { useState } from "react";
 import { useAccount } from "wagmi";
 
 const Home = () => {
   const { isConnected } = useAccount();
   const [safe, setSafe] = useState<any>(undefined);
+  const [managedSafe, setManagedSafe] = useState<string | null>(null);
+
+  const handleManageSafe = (safeAddress: string) => {
+    setManagedSafe(safeAddress);
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center">
@@ -15,7 +21,14 @@ const Home = () => {
           <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
             <div className="px-4 py-6 sm:px-0">
               <div className="p-4 px-10">
-                <SafeSelector onSafeSelect={setSafe} />
+                {managedSafe ? (
+                  <SafeDetails safeAddress={managedSafe} />
+                ) : (
+                  <SafeSelector
+                    onSafeSelect={setSafe}
+                    onManageSafe={handleManageSafe}
+                  />
+                )}
               </div>
             </div>
           </div>

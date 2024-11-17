@@ -2,7 +2,13 @@ import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { getSafes } from "@/api/safe";
 
-function SafeSelector({ onSafeSelect }: { onSafeSelect: any }) {
+function SafeSelector({
+  onSafeSelect,
+  onManageSafe,
+}: {
+  onSafeSelect: any;
+  onManageSafe: (safe: string) => void;
+}) {
   const { address } = useAccount();
   const [safeList, setSafeList] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -46,6 +52,12 @@ function SafeSelector({ onSafeSelect }: { onSafeSelect: any }) {
             Currently Selected Safe:
           </h3>
           <p className="text-green-600 font-mono break-all">{selectedSafe}</p>
+          <button
+            onClick={() => onManageSafe(selectedSafe)}
+            className="mt-3 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+          >
+            Manage Safe
+          </button>
         </div>
       )}
 
