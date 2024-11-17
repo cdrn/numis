@@ -14,7 +14,6 @@ function SafeSelector({
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedSafe, setSelectedSafe] = useState<string | null>(null);
 
-  // Fetch safes when the component loads
   useEffect(() => {
     async function fetchSafes() {
       if (!address) {
@@ -41,20 +40,20 @@ function SafeSelector({
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+    <div className="w-full">
+      <h2 className="text-4xl font-black uppercase mb-8 border-b-4 border-black pb-4">
         Select a Safe
       </h2>
 
       {selectedSafe && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <h3 className="text-sm font-medium text-gray-500 mb-1">
+        <div className="mb-8 border-4 border-black p-4 bg-green-100">
+          <h3 className="text-xl font-black uppercase mb-2">
             Currently Selected Safe:
           </h3>
-          <p className="text-green-600 font-mono break-all">{selectedSafe}</p>
+          <p className="font-mono text-sm break-all mb-4">{selectedSafe}</p>
           <button
             onClick={() => onManageSafe(selectedSafe)}
-            className="mt-3 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+            className="px-6 py-3 bg-white border-4 border-black font-black uppercase hover:bg-blue-100 transform hover:translate-x-1 hover:translate-y-1 transition-transform"
           >
             Manage Safe
           </button>
@@ -63,35 +62,25 @@ function SafeSelector({
 
       <div className="space-y-4">
         {loading ? (
-          <div className="flex justify-center items-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div className="p-8 text-2xl font-black uppercase text-center">
+            Loading...
           </div>
         ) : safeList.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2">
             {safeList.map((safe, index) => (
-              <div key={index} className="relative">
+              <div key={index}>
                 <button
                   onClick={() => handleSafeSelect(safe)}
-                  className={`w-full p-4 rounded-lg border transition-all duration-200 ${
-                    selectedSafe === safe
-                      ? "bg-blue-50 border-blue-500 shadow-md"
-                      : "bg-white border-gray-200 hover:border-blue-300 hover:shadow-md"
+                  className={`w-full border-4 border-black p-4 hover:bg-yellow-100 transition-colors ${
+                    selectedSafe === safe ? "bg-yellow-200" : "bg-white"
                   }`}
                 >
                   <div className="flex flex-col items-start gap-2">
-                    <span className="text-sm font-medium text-gray-500">
+                    <span className="text-lg font-black uppercase">
                       Safe Address:
                     </span>
-                    <span className="text-sm font-mono text-gray-700 break-all">
-                      {safe}
-                    </span>
-                    <span
-                      className={`mt-2 px-3 py-1 rounded-full text-sm ${
-                        selectedSafe === safe
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
+                    <span className="font-mono text-sm break-all">{safe}</span>
+                    <span className="mt-2 px-4 py-1 border-2 border-black font-black uppercase">
                       {selectedSafe === safe ? "Selected" : "Select this Safe"}
                     </span>
                   </div>
@@ -100,25 +89,11 @@ function SafeSelector({
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">
+          <div className="p-8 border-4 border-black text-center">
+            <h3 className="text-2xl font-black uppercase mb-4">
               No Safes Found
             </h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="text-lg font-bold">
               Please create a Gnosis Safe to proceed
             </p>
           </div>

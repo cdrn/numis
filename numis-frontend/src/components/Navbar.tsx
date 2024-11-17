@@ -32,6 +32,7 @@ const Navbar: FC = () => {
   const chains = useChains();
   const [activeChain, setActiveChain] = useState(chains[0]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleChainChange = () => {
@@ -60,54 +61,82 @@ const Navbar: FC = () => {
   };
 
   return (
-    <div className="flex justify-between items-center px-4">
-      <NavigationMenu>
-        <NavigationMenuList>
+    <div className="flex flex-col md:flex-row justify-between items-center px-4 md:px-8 py-4 bg-white border-b-4 border-black">
+      <div className="flex justify-between items-center w-full md:w-auto mb-4 md:mb-0">
+        <button
+          className="md:hidden px-4 py-2 border-2 border-black"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          {menuOpen ? "✕" : "☰"}
+        </button>
+      </div>
+
+      <NavigationMenu
+        className={`${menuOpen ? "block" : "hidden"} md:block w-full md:w-auto`}
+      >
+        <NavigationMenuList className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
           <NavigationMenuLink
             href="/"
-            className="p-2 m-4 transition-shadow duration-200"
+            className="px-4 py-2 font-black uppercase hover:bg-yellow-100 transition-colors text-center"
           >
-            <span>Dashboard</span>
+            Dashboard
           </NavigationMenuLink>
           <NavigationMenuLink
             href="/portfolio"
-            className="p-2 m-4 transition-shadow duration-200"
+            className="px-4 py-2 font-black uppercase hover:bg-yellow-100 transition-colors text-center"
           >
-            <span>Portfolio</span>
+            Portfolio
           </NavigationMenuLink>
           <NavigationMenuLink
             href="/transactions"
-            className="p-2 m-4 transition-shadow duration-200"
+            className="px-4 py-2 font-black uppercase hover:bg-yellow-100 transition-colors text-center"
           >
-            <span>Transactions</span>
+            Transactions
           </NavigationMenuLink>
           <NavigationMenuLink
             href="/settings"
-            className="p-2 m-4 transition-shadow duration-200"
+            className="px-4 py-2 font-black uppercase hover:bg-yellow-100 transition-colors text-center"
           >
-            <span>Settings</span>
+            Settings
           </NavigationMenuLink>
         </NavigationMenuList>
       </NavigationMenu>
-      <div className="ml-auto flex items-center space-x-4">
+
+      <div
+        className={`${
+          menuOpen ? "block" : "hidden"
+        } md:block w-full md:w-auto mt-4 md:mt-0`}
+      >
         {address ? (
-          <div className="flex items-center space-x-4 bg-green-100 p-2 rounded relative">
-            <span className="text-gray-700 font-semibold">Address:</span>
-            <span
-              className="text-gray-900 cursor-pointer"
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-            >
-              {truncateAddress(address)}
-            </span>
-            <span className="text-gray-700 font-semibold">Balance:</span>
-            <span className="text-gray-900">
-              {balanceData ? balanceData.formatted : "Loading..."} ETH
-            </span>
+          <div className="relative">
+            <div className="flex flex-col bg-white border-2 border-black p-4 space-y-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+                <div className="flex items-center space-x-2">
+                  <span className="font-black uppercase whitespace-nowrap">
+                    Address:
+                  </span>
+                  <span
+                    className="font-mono cursor-pointer hover:bg-yellow-100 px-2 truncate max-w-[200px]"
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                  >
+                    {truncateAddress(address)}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2 mt-2 sm:mt-0">
+                  <span className="font-black uppercase whitespace-nowrap">
+                    Balance:
+                  </span>
+                  <span className="font-mono">
+                    {balanceData ? balanceData.formatted : "Loading..."} ETH
+                  </span>
+                </div>
+              </div>
+            </div>
             {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg">
+              <div className="absolute right-0 mt-2 w-48 bg-white border-2 border-black">
                 <button
                   onClick={handleDisconnectWallet}
-                  className="block w-full text-left px-4 py-2 text-gray-700"
+                  className="block w-full text-left px-4 py-2 font-black uppercase hover:bg-red-100 transition-colors"
                 >
                   Disconnect
                 </button>
@@ -117,7 +146,7 @@ const Navbar: FC = () => {
         ) : (
           <button
             onClick={handleConnectWallet}
-            className="p-2 bg-blue-500 text-white rounded"
+            className="w-full md:w-auto px-4 py-2 bg-white border-2 border-black hover:bg-blue-100 transition-colors"
           >
             Connect Wallet
           </button>
