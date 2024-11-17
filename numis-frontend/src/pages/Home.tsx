@@ -1,6 +1,6 @@
 import SafeSelector from "@/components/SafeSelector";
 import SafeDetails from "@/components/SafeDetails";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -43,10 +43,10 @@ const Home = () => {
     localStorage.setItem("managedSafe", safeAddress);
   };
 
-  const handleSetSafe = (newSafe: any) => {
-    setSafe(newSafe);
-    localStorage.setItem("safe", JSON.stringify(newSafe));
-  };
+  // const handleSetSafe = (newSafe: any) => {
+  //   setSafe(newSafe);
+  //   localStorage.setItem("safe", JSON.stringify(newSafe));
+  // };
 
   const handleBack = () => {
     setView("selector");
