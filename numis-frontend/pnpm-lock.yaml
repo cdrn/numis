@@ -61,6 +61,9 @@ devDependencies:
   '@eslint/js':
     specifier: ^9.13.0
     version: 9.14.0
+  '@safe-global/safe-core-sdk-types':
+    specifier: ^5.1.0
+    version: 5.1.0(typescript@5.6.3)
   '@types/node':
     specifier: ^22.9.0
     version: 22.9.0
@@ -3485,6 +3488,16 @@ packages:
       - zod
     dev: false
 
+  /@safe-global/safe-core-sdk-types@5.1.0(typescript@5.6.3):
+    resolution: {integrity: sha512-UzXR4zWmVzux25FcIm4H049QhZZpVpIBL5HE+V0p5gHpArZROL+t24fZmsKUf403CtBxIJM5zZSVQL0nFJi+IQ==}
+    deprecated: 'WARNING: This project has been renamed to @safe-global/types-kit. Please, migrate from @safe-global/safe-core-sdk-types@5.1.0 to @safe-global/types-kit@1.0.0.'
+    dependencies:
+      abitype: 1.0.6(typescript@5.6.3)
+    transitivePeerDependencies:
+      - typescript
+      - zod
+    dev: true
+
   /@safe-global/safe-gateway-typescript-sdk@3.22.2:
     resolution: {integrity: sha512-Y0yAxRaB98LFp2Dm+ACZqBSdAmI3FlpH/LjxOZ94g/ouuDJecSq0iR26XZ5QDuEL8Rf+L4jBJaoDC08CD0KkJw==}
     engines: {node: '>=16'}
@@ -4369,7 +4382,6 @@ packages:
         optional: true
     dependencies:
       typescript: 5.6.3
-    dev: false
 
   /abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}

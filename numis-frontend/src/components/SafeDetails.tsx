@@ -21,12 +21,16 @@ interface SafeBalance {
   balance: string;
 }
 
+// Add a custom interface that matches your API response
+interface CustomSafeTransaction
+  extends Omit<SafeMultisigTransactionResponse, "proposer"> {
+  proposer?: string; // Make proposer optional
+}
+
 const SafeDetails = ({ safeAddress }: SafeDetailsProps) => {
   const [safeInfo, setSafeInfo] = useState<any>(null);
   const [balances, setBalances] = useState<SafeBalance[]>([]);
-  const [pendingTxs, setPendingTxs] = useState<
-    SafeMultisigTransactionResponse[]
-  >([]);
+  const [pendingTxs, setPendingTxs] = useState<CustomSafeTransaction[]>([]);
   const [delegates, setDelegates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
