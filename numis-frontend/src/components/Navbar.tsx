@@ -12,6 +12,7 @@ import {
   useChains,
 } from "wagmi";
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 
 export function Profile() {
   const { address } = useAccount();
@@ -74,28 +75,22 @@ const Navbar: FC = () => {
       <NavigationMenu
         className={`${menuOpen ? "block" : "hidden"} md:block w-full md:w-auto`}
       >
-        <NavigationMenuList className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
+        <NavigationMenuList className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 md:ml-0">
           <NavigationMenuLink
             href="/"
-            className="px-4 py-2 font-black uppercase hover:bg-yellow-100 transition-colors text-center"
+            className="px-4 py-2 font-black uppercase hover:bg-yellow-100 transition-colors text-left"
           >
             Dashboard
           </NavigationMenuLink>
           <NavigationMenuLink
             href="/portfolio"
-            className="px-4 py-2 font-black uppercase hover:bg-yellow-100 transition-colors text-center"
+            className="px-4 py-2 font-black uppercase hover:bg-yellow-100 transition-colors text-left"
           >
             Portfolio
           </NavigationMenuLink>
           <NavigationMenuLink
-            href="/transactions"
-            className="px-4 py-2 font-black uppercase hover:bg-yellow-100 transition-colors text-center"
-          >
-            Transactions
-          </NavigationMenuLink>
-          <NavigationMenuLink
             href="/settings"
-            className="px-4 py-2 font-black uppercase hover:bg-yellow-100 transition-colors text-center"
+            className="px-4 py-2 font-black uppercase hover:bg-yellow-100 transition-colors text-left"
           >
             Settings
           </NavigationMenuLink>
