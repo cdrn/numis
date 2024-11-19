@@ -1,3 +1,5 @@
+import { SafeMultisigTransactionResponse } from "@safe-global/safe-core-sdk-types";
+
 const SAFE_API_URL = import.meta.env.VITE_SAFE_API_BASE_URL;
 
 interface SafeInfo {
@@ -20,43 +22,6 @@ interface SafeBalance {
     decimals: number;
   };
   balance: string;
-}
-
-interface SafeMultisigTransactionResponse {
-  safe: string;
-  to: string;
-  value: string;
-  data: string | null;
-  operation: number;
-  gasToken: string;
-  safeTxGas: number;
-  baseGas: number;
-  gasPrice: string;
-  refundReceiver: string;
-  nonce: number;
-  executionDate: string | null;
-  submissionDate: string;
-  modified: string;
-  blockNumber: number | null;
-  transactionHash: string | null;
-  safeTxHash: string;
-  executor: string | null;
-  isExecuted: boolean;
-  isSuccessful: boolean | null;
-  ethGasPrice: string | null;
-  gasUsed: number | null;
-  fee: string | null;
-  origin: string | null;
-  dataDecoded: any | null;
-  confirmationsRequired: number;
-  confirmations: Array<{
-    owner: string;
-    submissionDate: string;
-    transactionHash: string | null;
-    signature: string | null;
-    signatureType: string;
-  }>;
-  trusted: boolean;
 }
 
 // Get all safes for an owner address
