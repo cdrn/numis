@@ -16,6 +16,7 @@
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.0",
     "@nomicfoundation/hardhat-viem": "^2.0.0",
+    "@safe-global/safe-contracts": "1.4.1-2",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^7.1.6",
     "@types/mocha": ">=9.1.0",
@@ -23,12 +24,14 @@
     "chai": "^4.2.0",
     "hardhat": "^2.22.16",
     "hardhat-gas-reporter": "^1.0.10",
-    "solidity-coverage": "^0.8.0",
+    "solhint": "^5.0.3",
+    "solidity-coverage": "^0.8.13",
     "ts-node": ">=8.0.0",
     "typescript": "~5.0.4",
     "viem": "^2.21.49"
   },
   "dependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "wagmi": "^2.13.0"
   }
 }

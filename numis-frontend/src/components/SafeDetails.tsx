@@ -6,6 +6,8 @@ import {
   getSafeDelegates,
 } from "@/api/safe";
 import { SafeMultisigTransactionResponse } from "@safe-global/safe-core-sdk-types";
+import { createPublicClient, http, parseAbi } from "viem";
+import { mainnet } from "viem/chains";
 
 interface SafeDetailsProps {
   safeAddress: string;
@@ -34,6 +36,13 @@ const SafeDetails = ({ safeAddress }: SafeDetailsProps) => {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
+
+  const publicClient = createPublicClient({
+    chain: mainnet,
+    transport: http(),
+  });
+
+  const safeAbi = parseAbi(require("../abis/Safe.json").abi);
 
   useEffect(() => {
     const fetchSafeDetails = async () => {

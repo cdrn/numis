@@ -1,0 +1,240 @@
+import {
+  time,
+  loadFixture,
+} from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
+import "@nomicfoundation/hardhat-viem";
+import { expect } from "chai";
+import hre from "hardhat";
+import { getAddress } from "viem";
+
+describe("MetaGuard", function () {
+  async function deployMetaGuardFixture() {
+    const [owner, otherAccount] = await hre.viem.getWalletClients();
+
+    // Deploy MetaGuard
+    const metaGuard = await hre.viem.deployContract("MetaGuard", []);
+
+    // Deploy some test guards to add
+    const whitelistGuard = await hre.viem.deployContract("WhitelistGuard", [
+      [],
+    ]);
+    const timelockGuard = await hre.viem.deployContract("TimeLockGuard", [
+      3600n,
+    ]); // 1 hour timelock
+    const collateralGuard = await hre.viem.deployContract(
+      "CollateralManagerGuard",
+      [[]]
+    );
+
+    const publicClient = await hre.viem.getPublicClient();
+
+    return {
+      metaGuard,
+      whitelistGuard,
+      timelockGuard,
+      collateralGuard,
+      owner,
+      otherAccount,
+      publicClient,
+    };
+  }
+
+  describe("Guard Management", function () {
+    it("Should successfully add a guard", async function () {
+      const { metaGuard, whitelistGuard, owner } = await loadFixture(
+        deployMetaGuardFixture
+      );
+
+      await metaGuard.write.addGuard([whitelistGuard.address]);
+
+      const firstGuard = await metaGuard.read.guards([0n]);
+      expect(firstGuard).to.equal(getAddress(whitelistGuard.address));
+    });
+
+    it("Should successfully remove a guard", async function () {
+      const { metaGuard, whitelistGuard, timelockGuard, owner } =
+        await loadFixture(deployMetaGuardFixture);
+
+      await metaGuard.write.addGuard([whitelistGuard.address]);
+      await metaGuard.write.addGuard([timelockGuard.address]);
+
+      await metaGuard.write.removeGuard([0n]);
+
+      const remainingGuard = await metaGuard.read.guards([0n]);
+      expect(remainingGuard).to.equal(getAddress(timelockGuard.address));
+    });
+
+    it("Should revert when trying to remove guard with invalid index", async function () {
+      const { metaGuard } = await loadFixture(deployMetaGuardFixture);
+
+      await expect(metaGuard.write.removeGuard([0n])).to.be.rejected;
+    });
+  });
+
+  describe("Transaction Checking", function () {
+    it("Should pass transaction check when no guards are added", async function () {
+      const { metaGuard, owner, otherAccount } = await loadFixture(
+        deployMetaGuardFixture
+      );
+
+      const tx = {
+        to: otherAccount.account.address,
+        value: 0n,
+        data: "0x",
+        operation: 0n, // Call
+        safeTxGas: 0n,
+        baseGas: 0n,
+        gasPrice: 0n,
+        gasToken: "0x0000000000000000000000000000000000000000",
+        refundReceiver: "0x0000000000000000000000000000000000000000",
+        signatures: "0x",
+        msgSender: owner.account.address,
+      };
+
+      await expect(
+        metaGuard.write.checkTransaction([
+          tx.to,
+          tx.value,
+          tx.data,
+          tx.operation,
+          tx.safeTxGas,
+          tx.baseGas,
+          tx.gasPrice,
+          tx.gasToken,
+          tx.refundReceiver,
+          tx.signatures,
+          tx.msgSender,
+        ])
+      ).to.not.be.rejected;
+    });
+
+    it("Should enforce all guard checks when multiple guards are added", async function () {
+      const {
+        metaGuard,
+        whitelistGuard,
+        collateralGuard,
+        owner,
+        otherAccount,
+      } = await loadFixture(deployMetaGuardFixture);
+
+      // Add guards
+      await metaGuard.write.addGuard([whitelistGuard.address]);
+      await metaGuard.write.addGuard([collateralGuard.address]);
+
+      const tx = {
+        to: otherAccount.account.address,
+        value: 0n,
+        data: "0x",
+        operation: 0n,
+        safeTxGas: 0n,
+        baseGas: 0n,
+        gasPrice: 0n,
+        gasToken: "0x0000000000000000000000000000000000000000",
+        refundReceiver: "0x0000000000000000000000000000000000000000",
+        signatures: "0x",
+        msgSender: owner.account.address,
+      };
+
+      // Should fail because recipient not whitelisted
+      await expect(
+        metaGuard.write.checkTransaction([
+          tx.to,
+          tx.value,
+          tx.data,
+          tx.operation,
+          tx.safeTxGas,
+          tx.baseGas,
+          tx.gasPrice,
+          tx.gasToken,
+          tx.refundReceiver,
+          tx.signatures,
+          tx.msgSender,
+        ])
+      ).to.be.rejected;
+
+      // Whitelist the recipient
+      await whitelistGuard.write.addToWhitelist([otherAccount.account.address]);
+
+      // Should still fail because msg.sender not collateral manager
+      await expect(
+        metaGuard.write.checkTransaction([
+          tx.to,
+          tx.value,
+          tx.data,
+          tx.operation,
+          tx.safeTxGas,
+          tx.baseGas,
+          tx.gasPrice,
+          tx.gasToken,
+          tx.refundReceiver,
+          tx.signatures,
+          tx.msgSender,
+        ])
+      ).to.be.rejected;
+
+      // Add sender as collateral manager
+      await collateralGuard.write.addManager([owner.account.address]);
+
+      // Should now pass all checks
+      await expect(
+        metaGuard.write.checkTransaction([
+          tx.to,
+          tx.value,
+          tx.data,
+          tx.operation,
+          tx.safeTxGas,
+          tx.baseGas,
+          tx.gasPrice,
+          tx.gasToken,
+          tx.refundReceiver,
+          tx.signatures,
+          tx.msgSender,
+        ])
+      ).to.not.be.rejected;
+    });
+  });
+
+  describe("After Execution Checks", function () {
+    it("Should call checkAfterExecution on all guards", async function () {
+      const { metaGuard, timelockGuard, owner } = await loadFixture(
+        deployMetaGuardFixture
+      );
+
+      await metaGuard.write.addGuard([timelockGuard.address]);
+
+      const txHash =
+        "0x1234567890123456789012345678901234567890123456789012345678901234";
+
+      await expect(metaGuard.write.checkAfterExecution([txHash, true])).to.not
+        .be.rejected;
+    });
+  });
+
+  describe("Edge Cases", function () {
+    it("Should handle empty guard array correctly", async function () {
+      const { metaGuard } = await loadFixture(deployMetaGuardFixture);
+
+      const txHash =
+        "0x1234567890123456789012345678901234567890123456789012345678901234";
+      await expect(metaGuard.write.checkAfterExecution([txHash, true])).to.not
+        .be.rejected;
+    });
+
+    it("Should maintain guard order after removals", async function () {
+      const { metaGuard, whitelistGuard, timelockGuard, collateralGuard } =
+        await loadFixture(deployMetaGuardFixture);
+
+      await metaGuard.write.addGuard([whitelistGuard.address]);
+      await metaGuard.write.addGuard([timelockGuard.address]);
+      await metaGuard.write.addGuard([collateralGuard.address]);
+
+      await metaGuard.write.removeGuard([1n]); // Remove timelock guard
+
+      const firstGuard = await metaGuard.read.guards([0n]);
+      const secondGuard = await metaGuard.read.guards([1n]);
+
+      expect(firstGuard).to.equal(getAddress(whitelistGuard.address));
+      expect(secondGuard).to.equal(getAddress(collateralGuard.address));
+    });
+  });
+});
