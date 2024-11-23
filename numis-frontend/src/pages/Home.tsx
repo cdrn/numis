@@ -67,14 +67,14 @@ const Home = () => {
               <>
                 <button
                   onClick={handleBack}
-                  className="px-6 py-3 bg-white border-4 border-black font-black uppercase hover:bg-yellow-100 transform hover:translate-x-1 hover:translate-y-1 transition-transform"
+                  className="px-6 py-3 bg-white border-2 border-black font-bold uppercase hover:bg-yellow-100 transform hover:translate-x-0.5 hover:translate-y-0.5 transition-transform"
                 >
                   ← Back to Safe Selection
                 </button>
                 <SafeDetails safeAddress={managedSafe} />
               </>
             ) : (
-              <div className="bg-white border-4 border-black p-8">
+              <div className="bg-white border-2 border-black p-8">
                 <SafeSelector
                   onSafeSelect={setSafe}
                   onManageSafe={handleManageSafe}
