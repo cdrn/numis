@@ -37,12 +37,12 @@ const SafeDetails = ({ safeAddress }: SafeDetailsProps) => {
     navigator.clipboard.writeText(text);
   };
 
-  const publicClient = createPublicClient({
-    chain: mainnet,
-    transport: http(),
-  });
+  // const publicClient = createPublicClient({
+  //   chain: mainnet,
+  //   transport: http(),
+  // });
 
-  const safeAbi = parseAbi(require("../abis/Safe.json").abi);
+  // const safeAbi = parseAbi(require("../abis/Safe.json").abi);
 
   useEffect(() => {
     const fetchSafeDetails = async () => {
