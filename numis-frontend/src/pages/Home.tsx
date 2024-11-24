@@ -1,8 +1,8 @@
-import SafeSelector from "@/components/SafeSelector";
-import SafeDetails from "@/components/SafeDetails";
-import { useState, useEffect } from "react";
-import { useAccount } from "wagmi";
-import { useNavigate, useLocation } from "react-router-dom";
+import SafeSelector from '@/components/SafeSelector';
+import SafeDetails from '@/components/SafeDetails';
+import { useState, useEffect } from 'react';
+import { useAccount } from 'wagmi';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Home = () => {
   const { isConnected } = useAccount();
@@ -12,35 +12,35 @@ const Home = () => {
 
   // Get initial state from URL params or localStorage
   const [safe, setSafe] = useState<any>(() => {
-    const urlSafe = searchParams.get("safe");
+    const urlSafe = searchParams.get('safe');
     if (urlSafe) return JSON.parse(urlSafe);
-    const savedSafe = localStorage.getItem("safe");
+    const savedSafe = localStorage.getItem('safe');
     return savedSafe ? JSON.parse(savedSafe) : undefined;
   });
 
   const [managedSafe, setManagedSafe] = useState<string | null>(() => {
-    const urlManagedSafe = searchParams.get("managedSafe");
+    const urlManagedSafe = searchParams.get('managedSafe');
     if (urlManagedSafe) return urlManagedSafe;
-    return localStorage.getItem("managedSafe");
+    return localStorage.getItem('managedSafe');
   });
 
-  const [view, setView] = useState<"selector" | "details">(() => {
-    return (searchParams.get("view") as "selector" | "details") || "selector";
+  const [view, setView] = useState<'selector' | 'details'>(() => {
+    return (searchParams.get('view') as 'selector' | 'details') || 'selector';
   });
 
   // Update URL when state changes
   useEffect(() => {
     const params = new URLSearchParams();
-    if (safe) params.set("safe", JSON.stringify(safe));
-    if (managedSafe) params.set("managedSafe", managedSafe);
-    params.set("view", view);
+    if (safe) params.set('safe', JSON.stringify(safe));
+    if (managedSafe) params.set('managedSafe', managedSafe);
+    params.set('view', view);
     navigate(`?${params.toString()}`, { replace: true });
   }, [safe, managedSafe, view]);
 
   const handleManageSafe = (safeAddress: string) => {
     setManagedSafe(safeAddress);
-    setView("details");
-    localStorage.setItem("managedSafe", safeAddress);
+    setView('details');
+    localStorage.setItem('managedSafe', safeAddress);
   };
 
   // const handleSetSafe = (newSafe: any) => {
@@ -49,9 +49,9 @@ const Home = () => {
   // };
 
   const handleBack = () => {
-    setView("selector");
+    setView('selector');
     setManagedSafe(null);
-    localStorage.removeItem("managedSafe");
+    localStorage.removeItem('managedSafe');
   };
 
   return (
@@ -63,7 +63,7 @@ const Home = () => {
           </div>
         ) : (
           <div className="space-y-8">
-            {view === "details" && managedSafe ? (
+            {view === 'details' && managedSafe ? (
               <>
                 <button
                   onClick={handleBack}

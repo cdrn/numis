@@ -1,13 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import {
   getSafeInfo,
   getSafeBalances,
   getPendingTransactions,
   getSafeDelegates,
-} from "@/api/safe";
-import { SafeMultisigTransactionResponse } from "@safe-global/safe-core-sdk-types";
-import { createPublicClient, http, parseAbi } from "viem";
-import { mainnet } from "viem/chains";
+} from '@/api/safe';
+import { SafeMultisigTransactionResponse } from '@safe-global/safe-core-sdk-types';
 
 interface SafeDetailsProps {
   safeAddress: string;
@@ -63,7 +61,7 @@ const SafeDetails = ({ safeAddress }: SafeDetailsProps) => {
         setPendingTxs(pendingTransactions);
         setDelegates(delegateList);
       } catch (err) {
-        setError("Failed to fetch safe details");
+        setError('Failed to fetch safe details');
         console.error(err);
       } finally {
         setLoading(false);
@@ -164,10 +162,10 @@ const SafeDetails = ({ safeAddress }: SafeDetailsProps) => {
             >
               <div>
                 <p className="text-base font-black uppercase">
-                  {balance?.token?.name || "Ethereum"}
+                  {balance?.token?.name || 'Ethereum'}
                 </p>
                 <p className="text-xs font-bold">
-                  {balance?.token?.symbol || "ETH"}
+                  {balance?.token?.symbol || 'ETH'}
                 </p>
               </div>
               <p className="font-mono text-base font-bold">
@@ -201,7 +199,7 @@ const SafeDetails = ({ safeAddress }: SafeDetailsProps) => {
                 </div>
                 <p className="text-sm font-bold">Value: {tx?.value} Wei</p>
                 <p className="mt-1 text-sm font-black bg-yellow-200 inline-block px-1">
-                  {tx?.confirmations?.length || 0}/{safeInfo?.threshold}{" "}
+                  {tx?.confirmations?.length || 0}/{safeInfo?.threshold}{' '}
                   CONFIRMS
                 </p>
               </div>

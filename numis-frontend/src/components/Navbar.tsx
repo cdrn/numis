@@ -2,7 +2,7 @@ import {
   NavigationMenu,
   NavigationMenuLink,
   NavigationMenuList,
-} from "@/components/ui/navigation-menu";
+} from '@/components/ui/navigation-menu';
 import {
   useAccount,
   useEnsName,
@@ -10,19 +10,19 @@ import {
   useBalance,
   useDisconnect,
   useChains,
-} from "wagmi";
-import { useState, useEffect } from "react";
+} from 'wagmi';
+import { useState, useEffect } from 'react';
 
 export function Profile() {
   const { address } = useAccount();
   const { data, error, status } = useEnsName({ address });
-  if (status === "pending") return <div>Loading ENS name</div>;
-  if (status === "error")
+  if (status === 'pending') return <div>Loading ENS name</div>;
+  if (status === 'error')
     return <div>Error fetching ENS name: {error.message}</div>;
   return <div>ENS name: {data}</div>;
 }
 
-import { FC } from "react";
+import { FC } from 'react';
 
 const Navbar: FC = () => {
   const { connect, connectors } = useConnect();
@@ -37,7 +37,7 @@ const Navbar: FC = () => {
   useEffect(() => {
     const handleChainChange = () => {
       const newActiveChain = chains.find(
-        (chain) => chain.id === activeChain.id
+        (chain) => chain.id === activeChain.id,
       );
       setActiveChain(newActiveChain || chains[0]);
     };
@@ -67,12 +67,12 @@ const Navbar: FC = () => {
           className="md:hidden px-4 py-2 border-2 border-black"
           onClick={() => setMenuOpen(!menuOpen)}
         >
-          {menuOpen ? "✕" : "☰"}
+          {menuOpen ? '✕' : '☰'}
         </button>
       </div>
 
       <NavigationMenu
-        className={`${menuOpen ? "block" : "hidden"} md:block w-full md:w-auto`}
+        className={`${menuOpen ? 'block' : 'hidden'} md:block w-full md:w-auto`}
       >
         <NavigationMenuList className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 md:ml-0">
           <NavigationMenuLink
@@ -98,7 +98,7 @@ const Navbar: FC = () => {
 
       <div
         className={`${
-          menuOpen ? "block" : "hidden"
+          menuOpen ? 'block' : 'hidden'
         } md:block w-full md:w-auto mt-4 md:mt-0`}
       >
         {address ? (
@@ -121,7 +121,7 @@ const Navbar: FC = () => {
                     Balance:
                   </span>
                   <span className="font-mono">
-                    {balanceData ? balanceData.formatted : "Loading..."} ETH
+                    {balanceData ? balanceData.formatted : 'Loading...'} ETH
                   </span>
                 </div>
               </div>

@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { useAccount } from "wagmi";
-import { getSafes } from "@/api/safe";
+import { useState, useEffect } from 'react';
+import { useAccount } from 'wagmi';
+import { getSafes } from '@/api/safe';
 
 function SafeSelector({
   onSafeSelect,
@@ -22,10 +22,10 @@ function SafeSelector({
       }
       try {
         const safes = await getSafes(address);
-        console.log("safe data: ", safes);
+        console.log('safe data: ', safes);
         setSafeList(safes || []);
       } catch (error) {
-        console.error("Error fetching safes:", error);
+        console.error('Error fetching safes:', error);
       } finally {
         setLoading(false);
       }
@@ -72,7 +72,7 @@ function SafeSelector({
                 <button
                   onClick={() => handleSafeSelect(safe)}
                   className={`w-full border-4 border-black p-4 hover:bg-yellow-100 transition-colors ${
-                    selectedSafe === safe ? "bg-yellow-200" : "bg-white"
+                    selectedSafe === safe ? 'bg-yellow-200' : 'bg-white'
                   }`}
                 >
                   <div className="flex flex-col items-start gap-2">
@@ -81,7 +81,7 @@ function SafeSelector({
                     </span>
                     <span className="font-mono text-sm break-all">{safe}</span>
                     <span className="mt-2 px-4 py-1 border-2 border-black font-black uppercase">
-                      {selectedSafe === safe ? "Selected" : "Select this Safe"}
+                      {selectedSafe === safe ? 'Selected' : 'Select this Safe'}
                     </span>
                   </div>
                 </button>
