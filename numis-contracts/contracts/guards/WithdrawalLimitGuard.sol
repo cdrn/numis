@@ -1,42 +1,48 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@safe-global/safe-contracts/contracts/interfaces/IGuard.sol";
+import "../interfaces/IGuard.sol";
 import "@safe-global/safe-contracts/contracts/common/Enum.sol";
+import "@safe-global/safe-contracts/cotracts/interface"
 
-contract CollateralManagerGuard is IGuard {
-    mapping(address => bool) public managers;
+contract WithdrawalLimitGuard is ITransactionGuard {
+    uint256 public dailyLimit;
+    mapping(address => uint256) public spentToday;
+    mapping(address => uint256) public lastSpentTimestamp;
 
-    constructor(address[] memory initialManagers) {
-        for (uint256 i = 0; i < initialManagers.length; i++) {
-            managers[initialManagers[i]] = true;
-        }
-    }
-
-    function addManager(address manager) external {
-        managers[manager] = true;
-    }
-
-    function removeManager(address manager) external {
-        managers[manager] = false;
+    constructor(uint256 _dailyLimit) {
+        dailyLimit = _dailyLimit;
     }
 
     function checkTransaction(
         address to,
         uint256 value,
-        bytes memory data,
+        bytes calldata data,
         Enum.Operation operation,
         uint256 safeTxGas,
         uint256 baseGas,
         uint256 gasPrice,
         address gasToken,
-        address refundReceiver,
+        address payable refundReceiver,
         bytes memory signatures,
         address msgSender
     ) external override {
-        require(managers[msgSender], "Not a collateral manager");
-        // optionally check the `to` address is a known collateral-related contract
+        uint256 today = block.timestamp / 1 days;
+        if (lastSpentTimestamp[msgSender] < today) {
+            spentToday[msgSender] = 0; // reset daily limit
+            lastSpentTimestamp[msgSender] = today;
+        }
+        require(
+            spentToday[msgSender] + value <= dailyLimit,
+            "Daily limit exceeded"
+        );
+        spentToday[msgSender] += value;
     }
 
-    function checkAfterExecution(bytes32, bool) external override {}
+    function checkAfterExecution(
+        bytes32 txHash,
+        bool success
+    ) external override {
+        // Add any post-execution checks if needed, or leave empty
+    }
 }
