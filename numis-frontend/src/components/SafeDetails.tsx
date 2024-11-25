@@ -6,6 +6,11 @@ import {
   getSafeDelegates,
 } from '@/api/safe';
 import { SafeMultisigTransactionResponse } from '@safe-global/safe-core-sdk-types';
+import { parseAbi } from 'viem';
+import { usePublicClient, useWalletClient } from 'wagmi';
+import { useGuards } from '@/hooks/useGuards';
+import { GuardConfig } from '@/components/guards/GuardConfig';
+import { Notification } from '@/components/ui/Notification';
 
 interface SafeDetailsProps {
   safeAddress: string;
@@ -21,6 +26,23 @@ interface SafeBalance {
   balance: string;
 }
 
+interface GuardInfo {
+  address: string | null;
+  type: string | null;
+}
+
+const SAFE_GUARD_ABI = parseAbi([
+  'function getGuard() external view returns (address)',
+  'function setGuard(address guard) external',
+]);
+
+const SAFE_ASCII = `
+  _____         ______ ______
+ / ___/__ _____/ __/ // / __/
+/ /__/ _ \`/ __/\\ \\/ _  / _/  
+\\___/\\_,_/_/ /___/_//_/___/  
+`;
+
 const SafeDetails = ({ safeAddress }: SafeDetailsProps) => {
   const [safeInfo, setSafeInfo] = useState<any>(null);
   const [balances, setBalances] = useState<SafeBalance[]>([]);
@@ -30,46 +52,95 @@ const SafeDetails = ({ safeAddress }: SafeDetailsProps) => {
   const [delegates, setDelegates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [guardInfo, setGuardInfo] = useState<GuardInfo>({
+    address: null,
+    type: null,
+  });
+  const [selectedGuard, setSelectedGuard] = useState<string>('');
+  const [config, setConfig] = useState<any>({});
+  const [notification, setNotification] = useState<{
+    type: 'success' | 'error' | 'loading';
+    message: string;
+  } | null>(null);
+  const publicClient = usePublicClient({ chainId: 1 });
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
 
-  // const publicClient = createPublicClient({
-  //   chain: mainnet,
-  //   transport: http(),
-  // });
-
-  // const safeAbi = parseAbi(require("../abis/Safe.json").abi);
-
   useEffect(() => {
     const fetchSafeDetails = async () => {
-      if (!safeAddress) return;
+      if (!safeAddress || !publicClient) return;
 
       setLoading(true);
-      try {
-        const [info, balanceData, pendingTransactions, delegateList] =
-          await Promise.all([
-            getSafeInfo(safeAddress),
-            getSafeBalances(safeAddress),
-            getPendingTransactions(safeAddress),
-            getSafeDelegates(safeAddress),
-          ]);
+      setError(null);
 
-        setSafeInfo(info);
-        setBalances(balanceData);
-        setPendingTxs(pendingTransactions);
-        setDelegates(delegateList);
+      try {
+        // Fetch data with individual error handling
+        let info, balanceData, pendingTransactions, delegateList;
+
+        try {
+          info = await getSafeInfo(safeAddress);
+          setSafeInfo(info);
+        } catch (err) {
+          console.error('Failed to fetch safe info:', err);
+          setError('Could not load Safe information. Please try again later.');
+          return;
+        }
+
+        try {
+          balanceData = await getSafeBalances(safeAddress);
+          setBalances(balanceData);
+        } catch (err) {
+          console.error('Failed to fetch balances:', err);
+          // Don't fail completely, just show empty balances
+          setBalances([]);
+        }
+
+        try {
+          pendingTransactions = await getPendingTransactions(safeAddress);
+          setPendingTxs(pendingTransactions);
+        } catch (err) {
+          console.error('Failed to fetch pending transactions:', err);
+          setPendingTxs([]);
+        }
+
+        try {
+          delegateList = await getSafeDelegates(safeAddress);
+          setDelegates(delegateList);
+        } catch (err) {
+          console.error('Failed to fetch delegates:', err);
+          setDelegates([]);
+        }
+
+        // Get guard info
+        try {
+          const guardAddress = await publicClient.readContract({
+            address: safeAddress as `0x${string}`,
+            abi: SAFE_GUARD_ABI,
+            functionName: 'getGuard',
+          });
+          setGuardInfo({
+            address: (guardAddress as string) || null,
+            type: 'Unknown',
+          });
+        } catch (err) {
+          console.log('No guard set or incompatible Safe version');
+          setGuardInfo({ address: null, type: null });
+        }
+
+        setLoading(false);
       } catch (err) {
-        setError('Failed to fetch safe details');
-        console.error(err);
-      } finally {
+        console.error('Failed to fetch safe details:', err);
+        setError(
+          'Failed to load Safe details. Please check your connection and try again.',
+        );
         setLoading(false);
       }
     };
 
     fetchSafeDetails();
-  }, [safeAddress]);
+  }, [safeAddress, publicClient]);
 
   if (loading) {
     return (
@@ -88,169 +159,254 @@ const SafeDetails = ({ safeAddress }: SafeDetailsProps) => {
   }
 
   return (
-    <div className="space-y-6 py-4 bg-zinc-50">
-      {/* Safe Basic Info */}
-      <div className="bg-white border-2 border-black p-4">
-        <h2 className="text-2xl font-black uppercase mb-4 border-b-2 border-black pb-2">
-          Safe Information
-        </h2>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="border border-black p-2">
-            <p className="text-sm font-bold uppercase">Address:</p>
-            <div className="flex items-center gap-2">
-              <p className="font-mono text-xs break-all bg-yellow-100 p-1 mt-1 flex-1">
-                {safeAddress}
+    <div className="retro-container">
+      <pre className="ascii-art text-center py-4">{SAFE_ASCII}</pre>
+      <div className="space-y-6 p-4">
+        {/* Safe Basic Info */}
+        <div className="retro-panel">
+          <h2 className="retro-header">System Information</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="border-2 border-[var(--terminal-green)] p-2">
+              <p className="text-sm uppercase">Address:</p>
+              <div className="flex items-center gap-2">
+                <p className="font-mono text-xs break-all p-1 mt-1 flex-1">
+                  {safeAddress}
+                </p>
+                <button
+                  onClick={() => copyToClipboard(safeAddress)}
+                  className="retro-button mt-1 text-xs"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+            <div className="border-2 border-[var(--terminal-green)] p-2">
+              <p className="text-sm uppercase">Threshold:</p>
+              <p className="text-xl mt-1">
+                {safeInfo?.threshold}/{safeInfo?.owners?.length}
               </p>
-              <button
-                onClick={() => copyToClipboard(safeAddress)}
-                className="mt-1 px-2 py-1 text-xs border border-black hover:bg-yellow-100"
+            </div>
+            <div className="border-2 border-[var(--terminal-green)] p-2">
+              <p className="text-sm uppercase">Nonce:</p>
+              <p className="text-xl mt-1">{safeInfo?.nonce}</p>
+            </div>
+            <div className="border-2 border-[var(--terminal-green)] p-2">
+              <p className="text-sm uppercase">Version:</p>
+              <p className="text-xl mt-1">{safeInfo?.version}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Owners */}
+        <div className="retro-panel">
+          <h2 className="retro-header">Authorized Users</h2>
+          <div className="space-y-2">
+            {safeInfo?.owners?.map((owner: string, index: number) => (
+              <div
+                key={index}
+                className="border-2 border-[var(--terminal-green)] p-2 flex items-center gap-2"
               >
-                Copy
+                <p className="font-mono text-xs break-all flex-1">
+                  {`>${owner}`}
+                </p>
+                <button
+                  onClick={() => copyToClipboard(owner)}
+                  className="retro-button text-xs"
+                >
+                  Copy
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Balances */}
+        <div className="retro-panel">
+          <h2 className="retro-header">Asset Registry</h2>
+          <div className="space-y-2">
+            {balances?.map((balance, index) => (
+              <div
+                key={index}
+                className="flex justify-between items-center border-2 border-[var(--terminal-green)] p-2"
+              >
+                <div>
+                  <p className="text-base uppercase">
+                    {balance?.token?.name || 'Ethereum'}
+                  </p>
+                  <p className="text-xs">{balance?.token?.symbol || 'ETH'}</p>
+                </div>
+                <p className="font-mono text-base">
+                  {parseFloat(balance?.balance) /
+                    Math.pow(10, balance?.token?.decimals || 18)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Pending Transactions */}
+        <div className="retro-panel">
+          <h2 className="retro-header">Pending Transactions</h2>
+          <div className="space-y-2">
+            {pendingTxs?.length > 0 ? (
+              pendingTxs?.map((tx, index) => (
+                <div
+                  key={index}
+                  className="border-2 border-[var(--terminal-green)] p-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <p className="font-mono text-xs break-all mb-1 flex-1">
+                      To: {tx?.to}
+                    </p>
+                    <button
+                      onClick={() => copyToClipboard(tx?.to)}
+                      className="retro-button text-xs"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                  <p className="text-sm">Value: {tx?.value} Wei</p>
+                  <p className="mt-1 text-sm bg-yellow-200 inline-block px-1">
+                    {tx?.confirmations?.length || 0}/{safeInfo?.threshold}{' '}
+                    CONFIRMS
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="text-lg uppercase text-gray-500">
+                No pending transactions
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Delegates */}
+        <div className="retro-panel">
+          <h2 className="retro-header">Delegates</h2>
+          <div className="space-y-2">
+            {delegates?.length > 0 ? (
+              delegates?.map((delegate, index) => (
+                <div
+                  key={index}
+                  className="border-2 border-[var(--terminal-green)] p-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <p className="font-mono text-xs break-all mb-1 flex-1">
+                      {delegate?.delegate}
+                    </p>
+                    <button
+                      onClick={() => copyToClipboard(delegate?.delegate)}
+                      className="retro-button text-xs"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs bg-purple-200 inline-block px-1">
+                      Added by: {delegate?.delegator}
+                    </p>
+                    <button
+                      onClick={() => copyToClipboard(delegate?.delegator)}
+                      className="retro-button text-xs"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-lg uppercase text-gray-500">No delegates</p>
+            )}
+          </div>
+        </div>
+
+        {/* Guard Management */}
+        <div className="retro-panel">
+          <h2 className="retro-header">Guard Management</h2>
+          <div className="space-y-4">
+            {/* Current Guard */}
+            <div className="border-2 border-[var(--terminal-green)] p-2">
+              <p className="text-sm uppercase">Current Guard:</p>
+              <div className="flex items-center gap-2">
+                <p className="font-mono text-xs break-all p-1 mt-1 flex-1">
+                  {guardInfo.address || 'No guard set'}
+                </p>
+                {guardInfo.address && (
+                  <button
+                    onClick={() => copyToClipboard(guardInfo.address!)}
+                    className="retro-button text-xs"
+                  >
+                    Copy
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Guard Selection */}
+            <div className="border-2 border-[var(--terminal-green)] p-2">
+              <p className="text-sm uppercase mb-2">Add Guard:</p>
+              <select
+                className="w-full p-2 border border-black mb-2"
+                value={selectedGuard}
+                onChange={(e) => setSelectedGuard(e.target.value)}
+                disabled={loading}
+              >
+                <option value="">Select a guard type</option>
+                <option value="timelock">Timelock Guard</option>
+                <option value="whitelist">Whitelist Guard</option>
+                <option value="withdrawal">Withdrawal Limit Guard</option>
+                <option value="collateral">Collateral Manager Guard</option>
+                <option value="meta">Meta Guard</option>
+              </select>
+
+              {/* Guard Configuration Form */}
+              {selectedGuard && (
+                <GuardConfig
+                  type={selectedGuard}
+                  config={config}
+                  setConfig={setConfig}
+                />
+              )}
+
+              <button
+                className="w-full mt-4 py-2 bg-black text-white font-bold uppercase hover:bg-gray-800 disabled:bg-gray-400"
+                onClick={async () => {
+                  try {
+                    setNotification({
+                      type: 'loading',
+                      message: 'Deploying guard...',
+                    });
+                    const tx = await deployGuard();
+                    setNotification({
+                      type: 'success',
+                      message:
+                        'Guard deployment transaction created. Please confirm in your wallet.',
+                    });
+                    console.log('Guard deployment transaction created:', tx);
+                  } catch (err) {
+                    console.error('Failed to deploy guard:', err);
+                    setNotification({
+                      type: 'error',
+                      message: error || 'Failed to deploy guard',
+                    });
+                  }
+                }}
+                disabled={!selectedGuard || loading}
+              >
+                {loading ? 'Deploying...' : 'Deploy & Set Guard'}
               </button>
             </div>
           </div>
-          <div className="border border-black p-2">
-            <p className="text-sm font-bold uppercase">Threshold:</p>
-            <p className="text-xl font-black mt-1">
-              {safeInfo?.threshold}/{safeInfo?.owners?.length}
-            </p>
-          </div>
-          <div className="border border-black p-2">
-            <p className="text-sm font-bold uppercase">Nonce:</p>
-            <p className="text-xl font-black mt-1">{safeInfo?.nonce}</p>
-          </div>
-          <div className="border border-black p-2">
-            <p className="text-sm font-bold uppercase">Version:</p>
-            <p className="text-xl font-black mt-1">{safeInfo?.version}</p>
-          </div>
         </div>
-      </div>
 
-      {/* Owners */}
-      <div className="bg-white border-2 border-black p-4">
-        <h2 className="text-2xl font-black uppercase mb-4 border-b-2 border-black pb-2">
-          Owners
-        </h2>
-        <div className="space-y-2">
-          {safeInfo?.owners?.map((owner: string, index: number) => (
-            <div
-              key={index}
-              className="border border-black p-2 flex items-center gap-2"
-            >
-              <p className="font-mono text-xs break-all flex-1">{owner}</p>
-              <button
-                onClick={() => copyToClipboard(owner)}
-                className="px-2 py-1 text-xs border border-black hover:bg-yellow-100"
-              >
-                Copy
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Balances */}
-      <div className="bg-white border-2 border-black p-4">
-        <h2 className="text-2xl font-black uppercase mb-4 border-b-2 border-black pb-2">
-          Token Balances
-        </h2>
-        <div className="space-y-2">
-          {balances?.map((balance, index) => (
-            <div
-              key={index}
-              className="flex justify-between items-center border border-black p-2"
-            >
-              <div>
-                <p className="text-base font-black uppercase">
-                  {balance?.token?.name || 'Ethereum'}
-                </p>
-                <p className="text-xs font-bold">
-                  {balance?.token?.symbol || 'ETH'}
-                </p>
-              </div>
-              <p className="font-mono text-base font-bold">
-                {parseFloat(balance?.balance) /
-                  Math.pow(10, balance?.token?.decimals || 18)}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Pending Transactions */}
-      <div className="bg-white border-2 border-black p-4">
-        <h2 className="text-2xl font-black uppercase mb-4 border-b-2 border-black pb-2">
-          Pending Transactions
-        </h2>
-        <div className="space-y-2">
-          {pendingTxs?.length > 0 ? (
-            pendingTxs?.map((tx, index) => (
-              <div key={index} className="border border-black p-2">
-                <div className="flex items-center gap-2">
-                  <p className="font-mono text-xs break-all mb-1 flex-1">
-                    To: {tx?.to}
-                  </p>
-                  <button
-                    onClick={() => copyToClipboard(tx?.to)}
-                    className="px-2 py-1 text-xs border border-black hover:bg-yellow-100"
-                  >
-                    Copy
-                  </button>
-                </div>
-                <p className="text-sm font-bold">Value: {tx?.value} Wei</p>
-                <p className="mt-1 text-sm font-black bg-yellow-200 inline-block px-1">
-                  {tx?.confirmations?.length || 0}/{safeInfo?.threshold}{' '}
-                  CONFIRMS
-                </p>
-              </div>
-            ))
-          ) : (
-            <p className="text-lg font-black uppercase text-gray-500">
-              No pending transactions
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Delegates */}
-      <div className="bg-white border-2 border-black p-4">
-        <h2 className="text-2xl font-black uppercase mb-4 border-b-2 border-black pb-2">
-          Delegates
-        </h2>
-        <div className="space-y-2">
-          {delegates?.length > 0 ? (
-            delegates?.map((delegate, index) => (
-              <div key={index} className="border border-black p-2">
-                <div className="flex items-center gap-2">
-                  <p className="font-mono text-xs break-all mb-1 flex-1">
-                    {delegate?.delegate}
-                  </p>
-                  <button
-                    onClick={() => copyToClipboard(delegate?.delegate)}
-                    className="px-2 py-1 text-xs border border-black hover:bg-yellow-100"
-                  >
-                    Copy
-                  </button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-xs font-bold bg-purple-200 inline-block px-1">
-                    Added by: {delegate?.delegator}
-                  </p>
-                  <button
-                    onClick={() => copyToClipboard(delegate?.delegator)}
-                    className="px-2 py-1 text-xs border border-black hover:bg-yellow-100"
-                  >
-                    Copy
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-lg font-black uppercase text-gray-500">
-              No delegates
-            </p>
-          )}
-        </div>
+        {/* Notification */}
+        {notification && (
+          <Notification
+            type={notification.type}
+            message={notification.message}
+            onClose={() => setNotification(null)}
+          />
+        )}
       </div>
     </div>
   );

@@ -40,62 +40,52 @@ function SafeSelector({
   };
 
   return (
-    <div className="w-full">
-      <h2 className="text-4xl font-black uppercase mb-8 border-b-4 border-black pb-4">
-        Select a Safe
-      </h2>
-
-      {selectedSafe && (
-        <div className="mb-8 border-4 border-black p-4 bg-green-100">
-          <h3 className="text-xl font-black uppercase mb-2">
-            Currently Selected Safe:
-          </h3>
-          <p className="font-mono text-sm break-all mb-4">{selectedSafe}</p>
-          <button
-            onClick={() => onManageSafe(selectedSafe)}
-            className="px-6 py-3 bg-white border-4 border-black font-black uppercase hover:bg-blue-100 transform hover:translate-x-1 hover:translate-y-1 transition-transform"
-          >
-            Manage Safe
-          </button>
-        </div>
-      )}
-
-      <div className="space-y-4">
-        {loading ? (
-          <div className="p-8 text-2xl font-black uppercase text-center">
-            Loading...
-          </div>
-        ) : safeList.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            {safeList.map((safe, index) => (
-              <div key={index}>
-                <button
-                  onClick={() => handleSafeSelect(safe)}
-                  className={`w-full border-4 border-black p-4 hover:bg-yellow-100 transition-colors ${
-                    selectedSafe === safe ? 'bg-yellow-200' : 'bg-white'
-                  }`}
-                >
-                  <div className="flex flex-col items-start gap-2">
-                    <span className="text-lg font-black uppercase">
-                      Safe Address:
-                    </span>
-                    <span className="font-mono text-sm break-all">{safe}</span>
-                    <span className="mt-2 px-4 py-1 border-2 border-black font-black uppercase">
-                      {selectedSafe === safe ? 'Selected' : 'Select this Safe'}
-                    </span>
-                  </div>
-                </button>
+    <div className="win-window">
+      <div className="win-window-title">Safe Selection</div>
+      <div className="win-window-content">
+        {selectedSafe && (
+          <div className="win-panel mb-4">
+            <div className="win-panel-header">Currently Selected Safe</div>
+            <div className="win-panel-content">
+              <div className="win-panel-row">
+                <span className="win-label">Address:</span>
+                <span className="win-value">{selectedSafe}</span>
               </div>
+              <button
+                onClick={() => onManageSafe(selectedSafe)}
+                className="win-button mt-4"
+              >
+                Manage Safe
+              </button>
+            </div>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="win-loading">Loading...</div>
+        ) : safeList.length > 0 ? (
+          <div className="win-list">
+            {safeList.map((safe, index) => (
+              <button
+                key={index}
+                onClick={() => handleSafeSelect(safe)}
+                className={`win-list-item ${
+                  selectedSafe === safe ? 'win-list-item-selected' : ''
+                }`}
+              >
+                <div className="win-list-item-content">
+                  <span className="win-list-item-label">Safe Address:</span>
+                  <span className="win-list-item-value">{safe}</span>
+                </div>
+              </button>
             ))}
           </div>
         ) : (
-          <div className="p-8 border-4 border-black text-center">
-            <h3 className="text-2xl font-black uppercase mb-4">
-              No Safes Found
-            </h3>
-            <p className="text-lg font-bold">
+          <div className="win-message-box">
+            <div className="win-message-title">No Safes Found</div>
+            <div className="win-message-content">
               Please create a Gnosis Safe to proceed
-            </p>
+            </div>
           </div>
         )}
       </div>

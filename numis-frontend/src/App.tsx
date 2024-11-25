@@ -6,11 +6,22 @@ import Home from './pages/Home';
 function App() {
   return (
     <Router>
-      <Navbar />
-      <div style={{ padding: '20px' }}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-        </Routes>
+      <div className="win-app">
+        <Navbar />
+        <div className="win-workspace">
+          <div className="win-desktop">
+            <Routes>
+              <Route path="/" element={<Home />} />
+            </Routes>
+          </div>
+          <div className="win-statusbar">
+            <div className="win-status-item">Ready</div>
+            <div className="win-status-item">Connected to Sepolia</div>
+            <div className="win-status-item win-clock">
+              {new Date().toLocaleTimeString()}
+            </div>
+          </div>
+        </div>
       </div>
     </Router>
   );

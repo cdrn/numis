@@ -1,6 +1,47 @@
 import { SafeMultisigTransactionResponse } from '@safe-global/safe-core-sdk-types';
 
 const SAFE_API_URL = import.meta.env.VITE_SAFE_API_BASE_URL;
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit = {},
+  retries = MAX_RETRIES,
+): Promise<Response> {
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        Accept: 'application/json',
+        ...options.headers,
+      },
+    });
+
+    // If we get rate limited, wait and retry
+    if (response.status === 429 && retries > 0) {
+      const retryAfter = parseInt(response.headers.get('Retry-After') || '1');
+      await sleep(retryAfter * 1000);
+      return fetchWithRetry(url, options, retries - 1);
+    }
+
+    // If we get a CORS error or other network error, retry with exponential backoff
+    if (!response.ok && retries > 0) {
+      await sleep(RETRY_DELAY * (MAX_RETRIES - retries + 1));
+      return fetchWithRetry(url, options, retries - 1);
+    }
+
+    return response;
+  } catch (error) {
+    if (retries > 0) {
+      await sleep(RETRY_DELAY * (MAX_RETRIES - retries + 1));
+      return fetchWithRetry(url, options, retries - 1);
+    }
+    throw error;
+  }
+}
 
 interface SafeInfo {
   address: string;
@@ -26,30 +67,44 @@ interface SafeBalance {
 
 // Get all safes for an owner address
 export const getSafes = async (ownerAddress: string): Promise<string[]> => {
-  const response = await fetch(
-    `${SAFE_API_URL}/api/v1/owners/${ownerAddress}/safes/`,
-  );
-  if (!response.ok) throw new Error('Failed to fetch safes');
-  const data = await response.json();
-  return data.safes;
+  try {
+    const response = await fetchWithRetry(
+      `${SAFE_API_URL}/api/v1/owners/${ownerAddress}/safes/`,
+    );
+    const data = await response.json();
+    return data.safes;
+  } catch (error) {
+    console.error('Error fetching safes:', error);
+    return [];
+  }
 };
 
 // Get detailed info about a specific safe
 export const getSafeInfo = async (safeAddress: string): Promise<SafeInfo> => {
-  const response = await fetch(`${SAFE_API_URL}/api/v1/safes/${safeAddress}/`);
-  if (!response.ok) throw new Error('Failed to fetch safe info');
-  return response.json();
+  try {
+    const response = await fetchWithRetry(
+      `${SAFE_API_URL}/api/v1/safes/${safeAddress}/`,
+    );
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching safe info:', error);
+    throw new Error('Failed to fetch safe info. Please try again later.');
+  }
 };
 
 // Get token balances for a safe
 export const getSafeBalances = async (
   safeAddress: string,
 ): Promise<SafeBalance[]> => {
-  const response = await fetch(
-    `${SAFE_API_URL}/api/v1/safes/${safeAddress}/balances/`,
-  );
-  if (!response.ok) throw new Error('Failed to fetch safe balances');
-  return response.json();
+  try {
+    const response = await fetchWithRetry(
+      `${SAFE_API_URL}/api/v1/safes/${safeAddress}/balances/`,
+    );
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching safe balances:', error);
+    return [];
+  }
 };
 
 // Get all transactions for a safe
