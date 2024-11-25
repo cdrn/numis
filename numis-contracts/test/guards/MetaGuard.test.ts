@@ -5,7 +5,12 @@ import {
 import "@nomicfoundation/hardhat-viem";
 import { expect } from "chai";
 import hre from "hardhat";
-import { getAddress } from "viem";
+import { getAddress, parseEther, zeroAddress } from "viem";
+import {
+  deployGuardFixture,
+  mockSafeTx,
+  expectRevert,
+} from "./GuardTestHelper";
 
 describe("MetaGuard", function () {
   async function deployMetaGuardFixture() {
@@ -18,12 +23,12 @@ describe("MetaGuard", function () {
     const whitelistGuard = await hre.viem.deployContract("WhitelistGuard", [
       [],
     ]);
-    const timelockGuard = await hre.viem.deployContract("TimeLockGuard", [
+    const timelockGuard = await hre.viem.deployContract("TimelockGuard", [
       3600n,
     ]); // 1 hour timelock
     const collateralGuard = await hre.viem.deployContract(
       "CollateralManagerGuard",
-      [[]]
+      [[], []]
     );
 
     const publicClient = await hre.viem.getPublicClient();
@@ -118,25 +123,21 @@ describe("MetaGuard", function () {
       } = await loadFixture(deployMetaGuardFixture);
 
       // Add guards
-      await metaGuard.write.addGuard([whitelistGuard.address]);
-      await metaGuard.write.addGuard([collateralGuard.address]);
+      await metaGuard.write.addGuard([whitelistGuard.address], {
+        account: owner.account,
+      });
+      await metaGuard.write.addGuard([collateralGuard.address], {
+        account: owner.account,
+      });
 
       const tx = {
+        ...mockSafeTx,
         to: otherAccount.account.address,
-        value: 0n,
-        data: "0x",
-        operation: 0n,
-        safeTxGas: 0n,
-        baseGas: 0n,
-        gasPrice: 0n,
-        gasToken: "0x0000000000000000000000000000000000000000",
-        refundReceiver: "0x0000000000000000000000000000000000000000",
-        signatures: "0x",
         msgSender: owner.account.address,
       };
 
-      // Should fail because recipient not whitelisted
-      await expect(
+      // Should fail because recipient not whitelisted and sender not collateral manager
+      await expectRevert(
         metaGuard.write.checkTransaction([
           tx.to,
           tx.value,
@@ -149,14 +150,18 @@ describe("MetaGuard", function () {
           tx.refundReceiver,
           tx.signatures,
           tx.msgSender,
-        ])
-      ).to.be.rejected;
+        ]),
+        "WhitelistGuard: recipient not whitelisted"
+      );
 
       // Whitelist the recipient
-      await whitelistGuard.write.addToWhitelist([otherAccount.account.address]);
+      await whitelistGuard.write.addToWhitelist(
+        [otherAccount.account.address],
+        { account: owner.account }
+      );
 
-      // Should still fail because msg.sender not collateral manager
-      await expect(
+      // Should still fail because sender not collateral manager
+      await expectRevert(
         metaGuard.write.checkTransaction([
           tx.to,
           tx.value,
@@ -169,11 +174,18 @@ describe("MetaGuard", function () {
           tx.refundReceiver,
           tx.signatures,
           tx.msgSender,
-        ])
-      ).to.be.rejected;
+        ]),
+        "CollateralManagerGuard: caller is not a manager"
+      );
 
-      // Add sender as collateral manager
-      await collateralGuard.write.addManager([owner.account.address]);
+      // Add sender as collateral manager and whitelist the contract
+      await collateralGuard.write.addManager([owner.account.address], {
+        account: owner.account,
+      });
+      await collateralGuard.write.whitelistContract(
+        [otherAccount.account.address],
+        { account: owner.account }
+      );
 
       // Should now pass all checks
       await expect(

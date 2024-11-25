@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "../interfaces/IGuard.sol";
+import "@safe-global/safe-contracts/contracts/base/GuardManager.sol";
 import "@safe-global/safe-contracts/contracts/common/Enum.sol";
-import "@safe-global/safe-contracts/cotracts/interface"
 
-contract WithdrawalLimitGuard is ITransactionGuard {
+contract WithdrawalLimitGuard is BaseGuard {
     uint256 public dailyLimit;
     mapping(address => uint256) public spentToday;
     mapping(address => uint256) public lastSpentTimestamp;
