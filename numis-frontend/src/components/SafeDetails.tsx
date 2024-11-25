@@ -7,8 +7,7 @@ import {
 } from '@/api/safe';
 import { SafeMultisigTransactionResponse } from '@safe-global/safe-core-sdk-types';
 import { parseAbi } from 'viem';
-import { usePublicClient, useWalletClient } from 'wagmi';
-import { useGuards } from '@/hooks/useGuards';
+import { usePublicClient } from 'wagmi';
 import { GuardConfig } from '@/components/guards/GuardConfig';
 import { Notification } from '@/components/ui/Notification';
 

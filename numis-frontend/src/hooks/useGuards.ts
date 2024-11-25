@@ -1,12 +1,6 @@
 import { useState } from 'react';
 import { usePublicClient, useWalletClient } from 'wagmi';
-import {
-  parseAbi,
-  encodeFunctionData,
-  Address,
-  PublicClient,
-  WalletClient,
-} from 'viem';
+import { parseAbi, encodeFunctionData, Address } from 'viem';
 
 interface GuardConfig {
   timelockDuration?: bigint;

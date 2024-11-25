@@ -26,7 +26,6 @@ const Navbar = () => {
   return (
     <div className="win-navbar">
       <div className="win-navbar-content">
-        {/* Title Bar */}
         <div className="win-title-bar">
           <div className="win-title-text">Numis Safe Manager</div>
           <div className="win-address-container">
@@ -34,27 +33,20 @@ const Navbar = () => {
               <div className="win-address-panel">
                 <div className="win-panel-row">
                   <span className="win-label">Address:</span>
-                  <span
-                    className="win-value"
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                  >
+                  <span className="win-value text-black">
                     {truncateAddress(address)}
                   </span>
                   <span className="win-label ml-4">Balance:</span>
-                  <span className="win-value">
+                  <span className="win-value text-black">
                     {balanceData ? balanceData.formatted : '0.00'} ETH
                   </span>
+                  <button
+                    onClick={handleDisconnectWallet}
+                    className="win-button ml-4"
+                  >
+                    Disconnect
+                  </button>
                 </div>
-                {dropdownOpen && (
-                  <div className="win-dropdown">
-                    <button
-                      onClick={handleDisconnectWallet}
-                      className="win-menu-button"
-                    >
-                      Disconnect
-                    </button>
-                  </div>
-                )}
               </div>
             ) : (
               <button onClick={handleConnectWallet} className="win-button">

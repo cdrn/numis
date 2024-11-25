@@ -2,7 +2,6 @@ import SafeSelector from '@/components/SafeSelector';
 import SafeDetails from '@/components/SafeDetails';
 import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
-import { useNavigate, useLocation } from 'react-router-dom';
 
 const Home = () => {
   const { isConnected } = useAccount();
