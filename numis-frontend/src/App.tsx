@@ -14,13 +14,6 @@ function App() {
               <Route path="/" element={<Home />} />
             </Routes>
           </div>
-          <div className="win-statusbar">
-            <div className="win-status-item">Ready</div>
-            <div className="win-status-item">Connected to Sepolia</div>
-            <div className="win-status-item win-clock">
-              {new Date().toLocaleTimeString()}
-            </div>
-          </div>
         </div>
       </div>
     </Router>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAccount, useBalance, useConnect, useDisconnect } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, Wallet } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   const { connect, connectors } = useConnect();
@@ -32,7 +33,9 @@ const Navbar = () => {
           <div className="flex flex-1">
             <div className="flex items-center">
               <Wallet className="mr-2 h-6 w-6" />
-              <span className="text-lg font-semibold">Numis</span>
+              <Link to="/">
+                <span className="text-lg font-semibold">Numis</span>
+              </Link>
             </div>
           </div>
 
