@@ -1,96 +1,95 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
+import { Button } from '@/components/ui/button';
+import { Loader2, Shield } from 'lucide-react';
 import { getSafes } from '@/api/safe';
 
-function SafeSelector({
-  onSafeSelect,
-  onManageSafe,
-}: {
-  onSafeSelect: any;
-  onManageSafe: (safe: string) => void;
-}) {
+interface SafeSelectorProps {
+  onSafeSelect: (safe: any) => void;
+  onManageSafe: (safeAddress: string) => void;
+}
+
+const SafeSelector = ({ onSafeSelect, onManageSafe }: SafeSelectorProps) => {
   const { address } = useAccount();
-  const [safeList, setSafeList] = useState<string[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [selectedSafe, setSelectedSafe] = useState<string | null>(null);
+  const [safes, setSafes] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchSafes() {
-      if (!address) {
-        setLoading(false);
-        return;
-      }
+    const fetchSafes = async () => {
+      if (!address) return;
+
       try {
-        const safes = await getSafes(address);
-        console.log('safe data: ', safes);
-        setSafeList(safes || []);
-      } catch (error) {
-        console.error('Error fetching safes:', error);
+        setLoading(true);
+        const userSafes = await getSafes(address);
+        setSafes(userSafes || []);
+      } catch (err) {
+        console.error('Failed to fetch safes:', err);
+        setError('Failed to load your Safes. Please try again.');
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchSafes();
   }, [address]);
 
-  const handleSafeSelect = (safe: string) => {
-    setSelectedSafe(safe);
-    onSafeSelect(safe);
-  };
-
   return (
-    <div className="win-window">
-      <div className="win-window-title">Safe Selection</div>
-      <div className="win-window-content">
-        {selectedSafe && (
-          <div className="win-panel mb-4">
-            <div className="win-panel-header">Currently Selected Safe</div>
-            <div className="win-panel-content">
-              <div className="win-panel-row">
-                <span className="win-label">Address:</span>
-                <span className="win-value">{selectedSafe}</span>
-              </div>
-              <button
-                onClick={() => onManageSafe(selectedSafe)}
-                className="win-button mt-4"
-              >
-                Manage Safe
-              </button>
-            </div>
-          </div>
-        )}
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-lg font-semibold">Your Safes</h2>
+        <p className="text-sm text-muted-foreground">
+          Select a Safe to manage from the list below
+        </p>
+      </div>
 
+      <div className="rounded-lg border">
         {loading ? (
-          <div className="win-loading">Loading...</div>
-        ) : safeList.length > 0 ? (
-          <div className="win-list">
-            {safeList.map((safe, index) => (
-              <button
+          <div className="flex items-center justify-center p-8">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span className="ml-2 text-sm text-muted-foreground">
+              Loading your Safes...
+            </span>
+          </div>
+        ) : error ? (
+          <div className="p-8 text-center">
+            <p className="text-sm text-destructive">{error}</p>
+          </div>
+        ) : safes.length > 0 ? (
+          <div className="divide-y">
+            {safes.map((safeAddress, index) => (
+              <div
                 key={index}
-                onClick={() => handleSafeSelect(safe)}
-                className={`win-list-item ${
-                  selectedSafe === safe ? 'win-list-item-selected' : ''
-                }`}
+                className="flex items-center justify-between p-4"
               >
-                <div className="win-list-item-content">
-                  <span className="win-list-item-label">Safe Address:</span>
-                  <span className="win-list-item-value">{safe}</span>
+                <div className="flex items-center gap-3">
+                  <Shield className="h-5 w-5 text-muted-foreground" />
+                  <p className="font-mono text-sm">{safeAddress}</p>
                 </div>
-              </button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onManageSafe(safeAddress)}
+                >
+                  Manage
+                </Button>
+              </div>
             ))}
           </div>
         ) : (
-          <div className="win-message-box">
-            <div className="win-message-title">No Safes Found</div>
-            <div className="win-message-content">
-              Please create a Gnosis Safe to proceed
+          <div className="flex flex-col items-center justify-center gap-3 p-8">
+            <Shield className="h-8 w-8 text-muted-foreground" />
+            <div className="text-center">
+              <p className="font-medium">No Safes Found</p>
+              <p className="text-sm text-muted-foreground">
+                You don't have any Safes associated with this wallet
+              </p>
             </div>
           </div>
         )}
       </div>
     </div>
   );
-}
+};
 
 export default SafeSelector;
