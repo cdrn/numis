@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Loader2, Shield } from 'lucide-react';
-import { useGuards } from '@/hooks/useGuards';
 import {
   getSafeInfo,
   getSafeBalances,
@@ -12,6 +11,7 @@ import {
   SafeTransaction,
   SafeDelegate,
 } from '@/api/safe';
+import GuardManager from './GuardManager';
 
 interface SafeDetailsProps {
   safeAddress: string;
@@ -171,6 +171,9 @@ const SafeDetails = ({ safeAddress }: SafeDetailsProps) => {
         </div>
       </div>
 
+      {/* Guards */}
+      <GuardManager />
+
       {/* Pending Transactions */}
       <div className="rounded-lg border bg-card">
         <div className="border-b p-4">
@@ -204,51 +207,6 @@ const SafeDetails = ({ safeAddress }: SafeDetailsProps) => {
           ) : (
             <div className="p-4 text-center text-sm text-muted-foreground">
               No pending transactions
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Delegates */}
-      <div className="rounded-lg border bg-card">
-        <div className="border-b p-4">
-          <h2 className="font-semibold">Delegates</h2>
-        </div>
-        <div className="divide-y">
-          {delegates.length > 0 ? (
-            delegates.map((delegate, index) => (
-              <div key={index} className="p-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <p className="font-mono text-sm">
-                      Delegate: {delegate.delegate}
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => copyToClipboard(delegate.delegate)}
-                    >
-                      Copy
-                    </Button>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">
-                      Added by: {delegate.delegator}
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => copyToClipboard(delegate.delegator)}
-                    >
-                      Copy
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="p-4 text-center text-sm text-muted-foreground">
-              No delegates
             </div>
           )}
         </div>
