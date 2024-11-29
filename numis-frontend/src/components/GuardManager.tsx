@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useContractRead, useContractWrite } from 'wagmi';
+import { useContractRead, useWriteContract } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 
@@ -29,34 +29,27 @@ export default function GuardManager() {
     functionName: 'getGuards',
   });
 
-  const { write: addGuard, isLoading: isAddingGuard } = useContractWrite({
-    address: META_GUARD_ADDRESS as `0x${string}`,
-    abi: [
-      {
-        name: 'addGuard',
-        type: 'function',
-        inputs: [{ type: 'address', name: 'guard' }],
-        outputs: [],
-      },
-    ],
-  });
-
-  const { write: removeGuard, isLoading: isRemovingGuard } = useContractWrite({
-    address: META_GUARD_ADDRESS as `0x${string}`,
-    abi: [
-      {
-        name: 'removeGuard',
-        type: 'function',
-        inputs: [{ type: 'uint256', name: 'index' }],
-        outputs: [],
-      },
-    ],
-  });
+  const { writeContract: addGuard, isPending: isAddingGuard } =
+    useWriteContract();
+  const { writeContract: removeGuard, isPending: isRemovingGuard } =
+    useWriteContract();
 
   const handleAddGuard = () => {
     if (selectedGuard && addGuard) {
       try {
-        addGuard({ args: [selectedGuard] });
+        addGuard({
+          address: META_GUARD_ADDRESS as `0x${string}`,
+          abi: [
+            {
+              name: 'addGuard',
+              type: 'function',
+              inputs: [{ type: 'address', name: 'guard' }],
+              outputs: [],
+            },
+          ],
+          functionName: 'addGuard',
+          args: [selectedGuard],
+        });
         setSelectedGuard('');
       } catch (error) {
         console.error('Failed to add guard:', error);
@@ -67,7 +60,19 @@ export default function GuardManager() {
   const handleRemoveGuard = (index: number) => {
     if (removeGuard) {
       try {
-        removeGuard({ args: [index] });
+        removeGuard({
+          address: META_GUARD_ADDRESS as `0x${string}`,
+          abi: [
+            {
+              name: 'removeGuard',
+              type: 'function',
+              inputs: [{ type: 'uint256', name: 'index' }],
+              outputs: [],
+            },
+          ],
+          functionName: 'removeGuard',
+          args: [index],
+        });
       } catch (error) {
         console.error('Failed to remove guard:', error);
       }
