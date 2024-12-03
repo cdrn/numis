@@ -12,20 +12,34 @@ const GUARDS = [
 
 const META_GUARD_ADDRESS = '0x...'; // Replace with actual deployed address
 
+const guardAbi = [
+  {
+    name: 'getGuards',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ type: 'address[]' }],
+  },
+  {
+    name: 'addGuard',
+    type: 'function',
+    inputs: [{ type: 'address', name: 'guard' }],
+    outputs: [],
+  },
+  {
+    name: 'removeGuard',
+    type: 'function',
+    inputs: [{ type: 'uint256', name: 'index' }],
+    outputs: [],
+  },
+] as const;
+
 export default function GuardManager() {
   const [selectedGuard, setSelectedGuard] = useState('');
 
   const { data: currentGuards, isLoading: isLoadingGuards } = useContractRead({
     address: META_GUARD_ADDRESS as `0x${string}`,
-    abi: [
-      {
-        name: 'getGuards',
-        type: 'function',
-        stateMutability: 'view',
-        inputs: [],
-        outputs: [{ type: 'address[]' }],
-      },
-    ],
+    abi: guardAbi,
     functionName: 'getGuards',
   });
 
@@ -39,16 +53,9 @@ export default function GuardManager() {
       try {
         addGuard({
           address: META_GUARD_ADDRESS as `0x${string}`,
-          abi: [
-            {
-              name: 'addGuard',
-              type: 'function',
-              inputs: [{ type: 'address', name: 'guard' }],
-              outputs: [],
-            },
-          ],
+          abi: guardAbi,
           functionName: 'addGuard',
-          args: [selectedGuard],
+          args: [selectedGuard as `0x${string}`],
         });
         setSelectedGuard('');
       } catch (error) {
@@ -62,14 +69,7 @@ export default function GuardManager() {
       try {
         removeGuard({
           address: META_GUARD_ADDRESS as `0x${string}`,
-          abi: [
-            {
-              name: 'removeGuard',
-              type: 'function',
-              inputs: [{ type: 'uint256', name: 'index' }],
-              outputs: [],
-            },
-          ],
+          abi: guardAbi,
           functionName: 'removeGuard',
           args: [index],
         });
