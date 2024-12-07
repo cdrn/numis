@@ -5,10 +5,8 @@ import {
   getSafeInfo,
   getSafeBalances,
   getPendingTransactions,
-  getSafeDelegates,
   type SafeInfo,
   type SafeTransaction,
-  type SafeDelegate,
 } from '@/api/safe';
 import GuardManager from './GuardManager';
 
@@ -42,17 +40,33 @@ const SafeDetails = ({ safeAddress }: SafeDetailsProps) => {
 
       try {
         // Fetch all Safe data in parallel
-        const [info, balanceData, pendingTransactions, delegateList] =
-          await Promise.all([
-            getSafeInfo(safeAddress),
-            getSafeBalances(safeAddress),
-            getPendingTransactions(safeAddress),
-            getSafeDelegates(safeAddress),
-          ]);
+        const [info, balanceData, pendingTransactions] = await Promise.all([
+          getSafeInfo(safeAddress),
+          getSafeBalances(safeAddress),
+          getPendingTransactions(safeAddress),
+        ]);
 
         setSafeInfo(info);
         setBalances(balanceData || []);
-        setPendingTxs(pendingTransactions || []);
+        setPendingTxs(
+          (pendingTransactions || []).map((tx) => ({
+            to: tx.to,
+            value: tx.value,
+            data: tx.data || '',
+            operation: tx.operation,
+            safeTxGas: tx.safeTxGas.toString(),
+            baseGas: tx.baseGas.toString(),
+            gasPrice: tx.gasPrice,
+            gasToken: tx.gasToken,
+            refundReceiver: tx.refundReceiver || '',
+            nonce: tx.nonce,
+            confirmations:
+              tx.confirmations?.map((conf) => ({
+                owner: conf.owner,
+                signature: conf.signature,
+              })) || [],
+          })),
+        );
       } catch (err) {
         console.error('Failed to fetch safe details:', err);
         setError('Failed to load Safe details. Please try again.');
