@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Loader2, Shield } from 'lucide-react';
 import {
@@ -7,9 +6,9 @@ import {
   getSafeBalances,
   getPendingTransactions,
   getSafeDelegates,
-  SafeInfo,
-  SafeTransaction,
-  SafeDelegate,
+  type SafeInfo,
+  type SafeTransaction,
+  type SafeDelegate,
 } from '@/api/safe';
 import GuardManager from './GuardManager';
 
@@ -28,11 +27,9 @@ interface SafeBalance {
 }
 
 const SafeDetails = ({ safeAddress }: SafeDetailsProps) => {
-  const navigate = useNavigate();
   const [safeInfo, setSafeInfo] = useState<SafeInfo | null>(null);
   const [balances, setBalances] = useState<SafeBalance[]>([]);
   const [pendingTxs, setPendingTxs] = useState<SafeTransaction[]>([]);
-  const [delegates, setDelegates] = useState<SafeDelegate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,7 +53,6 @@ const SafeDetails = ({ safeAddress }: SafeDetailsProps) => {
         setSafeInfo(info);
         setBalances(balanceData || []);
         setPendingTxs(pendingTransactions || []);
-        setDelegates(delegateList || []);
       } catch (err) {
         console.error('Failed to fetch safe details:', err);
         setError('Failed to load Safe details. Please try again.');

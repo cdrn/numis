@@ -5,11 +5,10 @@ import { Loader2, Shield } from 'lucide-react';
 import { getSafes } from '@/api/safe';
 
 interface SafeSelectorProps {
-  onSafeSelect: (safe: any) => void;
-  onManageSafe: (safeAddress: string) => void;
+  onManageSafe: (address: string) => void;
 }
 
-const SafeSelector = ({ onSafeSelect, onManageSafe }: SafeSelectorProps) => {
+const SafeSelector = ({ onManageSafe }: SafeSelectorProps) => {
   const { address } = useAccount();
   const [safes, setSafes] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);

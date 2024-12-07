@@ -8,7 +8,7 @@ const GUARDS = [
   { name: 'Whitelist Guard', address: '0x...' },
   { name: 'Withdrawal Limit Guard', address: '0x...' },
   { name: 'Collateral Manager Guard', address: '0x...' },
-];
+] as const;
 
 const META_GUARD_ADDRESS = '0x...'; // Replace with actual deployed address
 
@@ -34,14 +34,18 @@ const guardAbi = [
   },
 ] as const;
 
+type GuardList = readonly `0x${string}`[];
+
 export default function GuardManager() {
   const [selectedGuard, setSelectedGuard] = useState('');
 
-  const { data: currentGuards, isLoading: isLoadingGuards } = useContractRead({
+  const { data, isLoading: isLoadingGuards } = useContractRead({
     address: META_GUARD_ADDRESS as `0x${string}`,
     abi: guardAbi,
     functionName: 'getGuards',
   });
+
+  const currentGuards = (data ?? []) as GuardList;
 
   const { writeContract: addGuard, isPending: isAddingGuard } =
     useWriteContract();
@@ -119,9 +123,9 @@ export default function GuardManager() {
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Loading guards...
               </div>
-            ) : currentGuards && currentGuards.length > 0 ? (
+            ) : currentGuards.length > 0 ? (
               <div className="space-y-2">
-                {currentGuards.map((guard: string, index: number) => (
+                {currentGuards.map((guard, index) => (
                   <div
                     key={guard}
                     className="flex items-center justify-between rounded-lg border p-2"

@@ -185,3 +185,29 @@ export const getSafeModules = async (
   const data = await response.json();
   return data.results;
 };
+
+// Add exports for the interfaces
+export interface SafeInfo {
+  address: string;
+  version: string;
+  owners: string[];
+  threshold: number;
+  nonce: number;
+}
+
+export interface SafeTransaction {
+  to: string;
+  value: string;
+  data: string;
+  operation: number;
+  safeTxGas: string;
+  baseGas: string;
+  gasPrice: string;
+  gasToken: string;
+  refundReceiver: string;
+  nonce: number;
+  confirmations: Array<{
+    owner: string;
+    signature: string;
+  }>;
+}

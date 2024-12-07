@@ -3,7 +3,6 @@ import { useAccount, useBalance, useConnect, useDisconnect } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, Wallet, Moon, Sun } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { type Connector } from 'wagmi';
 
 const Navbar = () => {
   const { connect, connectors } = useConnect();
