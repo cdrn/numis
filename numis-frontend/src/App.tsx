@@ -1,23 +1,21 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
+import SafeDetails from './components/SafeDetails';
 
-function App() {
+export default function App() {
   return (
     <Router>
-      <div className="win-app">
+      <div className="min-h-screen bg-background">
         <Navbar />
-        <div className="win-workspace">
-          <div className="win-desktop">
-            <Routes>
-              <Route path="/" element={<Home />} />
-            </Routes>
-          </div>
-        </div>
+        <main>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/safe/:address" element={<SafeDetails />} />
+          </Routes>
+        </main>
       </div>
     </Router>
   );
 }
-
-export default App;

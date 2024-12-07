@@ -1,21 +1,16 @@
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SafeSelector from '@/components/SafeSelector';
-import SafeDetails from '@/components/SafeDetails';
 
 export default function Home() {
-  const [selectedSafe, setSelectedSafe] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleManageSafe = (address: string) => {
-    setSelectedSafe(address);
+    navigate(`/safe/${address}`);
   };
 
   return (
     <div className="container mx-auto p-4">
-      {selectedSafe ? (
-        <SafeDetails safeAddress={selectedSafe} />
-      ) : (
-        <SafeSelector onManageSafe={handleManageSafe} />
-      )}
+      <SafeSelector onManageSafe={handleManageSafe} />
     </div>
   );
 }
